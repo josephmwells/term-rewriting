@@ -3,7 +3,17 @@
 #include <unordered_map>
 #include <iostream>
 #include <memory>
-using namespace std;
+
+using std::shared_ptr;
+using std::make_shared;
+
+using std::string;
+using std::pair;
+using std::vector;
+
+using std::cout;
+using std::endl;
+
 
 //////////////////////////////////////////////////////////////////
 //
