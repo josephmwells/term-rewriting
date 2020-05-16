@@ -39,7 +39,11 @@ using rule = std::pair<term_ptr<T>, term_ptr<T>>;
 template<typename T>
 class term { 
   public:
-    term() {};
+    
+    term<T>() {};
+
+    term_iterator<T> begin() { return term_iterator<T>(); }
+    term_iterator<T> end() { return term_iterator<T>(); }
 
   private:
 };
@@ -47,8 +51,9 @@ class term {
 template<typename T>
 class variable : public term<T> { 
   public:
-    variable() : term<T>() {};
-    variable(std::string name) : term<T>(), name_{name} {};
+    variable<T>() : term<T>() {};
+    variable<T>(std::string name) : term<T>(), name_{name} {};
+    
   private:
     std::string name_;
 };
@@ -56,8 +61,9 @@ class variable : public term<T> {
 template<typename T>
 class literal : public term<T> { 
   public:
-    literal() : term<T>() {};
-    literal(T lit) : term<T>(), literal_{lit} {};
+    literal<T>() : term<T>() {};
+    literal<T>(T lit) : term<T>(), literal_{lit} {};
+
   private:
     T literal_;
 };
@@ -65,15 +71,14 @@ class literal : public term<T> {
 template<typename T>
 class function : public term<T> { 
   public:
-    function() : term<T>() {};
-    function(std::string name, int arity, std::vector<term_ptr<T>> children) : term<T>(), name_{name}, arity_{arity}, children_{children} {}; 
+    function<T>() : term<T>() {};
+    function<T>(std::string name, int arity, std::vector<term_ptr<T>> children) 
+      : term<T>(), name_{name}, arity_{arity}, children_{children} {}; 
+    
   private:
     std::string name_;
     int arity_;
     std::vector<term_ptr<T>> children_;
-    
-
-
 };
 
 
