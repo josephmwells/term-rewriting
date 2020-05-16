@@ -90,6 +90,7 @@ rule<bool> contra(to(var("a"), lit(false)), tnot(var("a")));
 
 int main()
 {
+    cout << "Testing" << endl;
     // (!(x \/ x) /\ !true) -> false
     term_ptr<bool> example = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
 

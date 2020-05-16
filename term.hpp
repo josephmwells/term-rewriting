@@ -69,16 +69,15 @@ template<typename T>
 class literal : public term<T> { 
   public:
     literal<T>() : term<T>() {};
-    literal<T>(T lit) : term<T>(), literal_{lit} {};
+    literal<T>(T value) : term<T>(), value_{value} {};
 
     void print() const
     {
-      //std::cout << literal_;
-      std::cout << "literal";
+      std::cout << value_;
     }
 
   private:
-    T literal_;
+    T value_;
 };
 
 template<typename T>
@@ -91,9 +90,12 @@ class function : public term<T> {
     void print() const
     {
       std::cout << name_;
-      for(const term_ptr<T> & t : children_) {
+      std::cout << "(";
+      for(const term_ptr<T>& t : children_) {
         t->print();
+        if(t != children_.back()) std::cout << ", ";
       }
+      std::cout << ")";
     }
     
   private:
@@ -146,6 +148,7 @@ template<typename T>
 std::ostream& operator<<(std::ostream& out, const term<T>& t)
 {
   t.print();
+  return out;
 }
 
 #endif // TERM_HPP
