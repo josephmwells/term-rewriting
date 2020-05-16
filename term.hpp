@@ -45,6 +45,8 @@ class term {
     term_iterator<T> begin() { return term_iterator<T>(); }
     term_iterator<T> end() { return term_iterator<T>(); }
 
+    virtual void print() const = 0;
+
   private:
 };
 
@@ -53,6 +55,11 @@ class variable : public term<T> {
   public:
     variable<T>() : term<T>() {};
     variable<T>(std::string name) : term<T>(), name_{name} {};
+
+    void print() const
+    {
+      std::cout << name_;
+    }
     
   private:
     std::string name_;
@@ -64,6 +71,12 @@ class literal : public term<T> {
     literal<T>() : term<T>() {};
     literal<T>(T lit) : term<T>(), literal_{lit} {};
 
+    void print() const
+    {
+      //std::cout << literal_;
+      std::cout << "literal";
+    }
+
   private:
     T literal_;
 };
@@ -74,6 +87,14 @@ class function : public term<T> {
     function<T>() : term<T>() {};
     function<T>(std::string name, int arity, std::vector<term_ptr<T>> children) 
       : term<T>(), name_{name}, arity_{arity}, children_{children} {}; 
+
+    void print() const
+    {
+      std::cout << name_;
+      for(const term_ptr<T> & t : children_) {
+        t->print();
+      }
+    }
     
   private:
     std::string name_;
@@ -124,6 +145,7 @@ term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Su
 template<typename T>
 std::ostream& operator<<(std::ostream& out, const term<T>& t)
 {
+  t.print();
 }
 
 #endif // TERM_HPP
