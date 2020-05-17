@@ -109,20 +109,19 @@ int main()
     // output: not(true)
     // output: true
     // output: false
-    /*
+    cout << "iterating . . . " << endl;
     for(term<bool>& t : *example)
     {
+        cout << "output: ";
         cout << t << endl;
     }
-    */
 
     // test doing a simple rewrite
     // this should give
     // output: not(and(not(or(a,a)), not(true)))
-    /*
+
     Sub<bool> match;
     match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
     example = rewrite(example, *contra.second, vector<int>(), match);
     cout << *example << endl;
-    */
 }
