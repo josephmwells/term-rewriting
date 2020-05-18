@@ -47,7 +47,6 @@ public:
     typedef term_ptr<T> pointer;
     typedef term<T>& reference;
     typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
     typedef std::forward_iterator_tag iterator_category;
     typedef term_iterator<T> iterator;
     typedef term_iterator<const T> const_iterator;
@@ -62,6 +61,7 @@ public:
 
     virtual std::vector<term_ptr<T>> children() { return std::vector<term_ptr<T>>(); }
 
+    virtual term_ptr<T> substitute(const Sub<T> &sigma) const = 0;
 
     virtual void print() const = 0;
 
@@ -77,11 +77,13 @@ class variable : public term<T> {
 public:
     variable<T>() : term<T>() {};
 
-    variable<T>(const variable<T> &copy) : term<T>(), name_{copy.name_} {};
+    variable<T>(const variable<T>& copy) : term<T>(), name_{copy.name_} {};
 
     variable<T>(std::string name) : term<T>(), name_{name} {};
 
     variable<T>& operator=(const variable<T> &other);
+
+    term_ptr<T> substitute(const Sub<T> &sigma) const override;
 
     void print() const override;
 
@@ -100,6 +102,13 @@ void variable<T>::print() const {
     std::cout << name_;
 }
 
+template<typename T>
+term_ptr<T> variable<T>::substitute(const Sub<T> &sigma) const {
+    //term<T> t_copy = sigma(name_);
+    //term_ptr<T> t = std::make_shared<term<T>>(t_copy);
+    return term_ptr<T>();
+}
+
 /////////////////////////////////////////////////////////////////
 // LITERAL
 /////////////////////////////////////////////////////////////////
@@ -114,6 +123,8 @@ public:
     literal<T>(T value) : term<T>(), value_{value} {};
 
     literal<T>& operator=(const literal<T> &other);
+
+    term_ptr<T> substitute(const Sub<T> &sigma) const override;
 
     void print() const override;
 
@@ -138,6 +149,12 @@ void literal<bool>::print() const {
     if (!value_) std::cout << "false";
 }
 
+template<typename T>
+term_ptr<T> literal<T>::substitute(const Sub<T> &sigma) const {
+    term_ptr<T> t = std::make_shared<literal<T>>(*this);
+    return t;
+}
+
 /////////////////////////////////////////////////////////////////
 // FUNCTION
 /////////////////////////////////////////////////////////////////
@@ -156,6 +173,8 @@ public:
     function<T>& operator=(const function<T> &other);
 
     std::vector<term_ptr<T>> children() override { return children_; };
+
+    term_ptr<T> substitute(const Sub<T> &sigma) const override;
 
     void print() const override;
 
@@ -177,11 +196,21 @@ template<typename T>
 void function<T>::print() const {
     std::cout << name_;
     std::cout << "(";
-    for (const term_ptr<T> &t : children_) {
+    for (const term_ptr<T>& t : children_) {
         t->print();
         if (t != children_.back()) std::cout << ", ";
     }
     std::cout << ")";
+}
+
+template<typename T>
+term_ptr<T> function<T>::substitute(const Sub<T>& sigma) const {
+    function<T> t_copy = *this;
+    for(term_ptr<T>& t : t_copy.children_) {
+        t = t->substitute(sigma);
+    }
+    term_ptr<T> t_ptr = std::make_shared<function<T>>(t_copy);
+    return t_ptr;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -211,13 +240,9 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules) {
 /////////////////////////////////////////////////////////////////
 
 template<typename T>
-term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Sub<T>& sigma) {
-    term_ptr<T> current = t;
-    for(int i : path) {
-        current = current->children()[i-1];
-    }
-    *current = rhs;
-    return t;
+term_ptr<T> rewrite(term_ptr<T> t, const term<T>& rhs, std::vector<int> path, const Sub<T>& sigma) {
+    term_ptr<T> t_new = rhs.substitute(sigma);
+    return t_new;
 }
 
 /////////////////////////////////////////////////////////////////

@@ -17,7 +17,6 @@ public:
     typedef term<T> &reference;
     typedef term_ptr<T> pointer;
     typedef size_t size_type;
-    typedef ptrdiff_t difference_type;
     typedef std::forward_iterator_tag iterator_category;
 
     term_iterator<T>() = delete;
