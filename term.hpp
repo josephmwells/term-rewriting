@@ -54,6 +54,8 @@ public:
 
     term<T>() {};
 
+    term<T>& operator=(const term<T>& other) { return *this;}
+
     iterator begin() { return iterator(*this, true); }
 
     iterator end() { return iterator(*this, false); }
@@ -164,7 +166,7 @@ private:
 };
 
 template<typename T>
-function<T>& function<T>::operator=(const function<T> &other) {
+function<T>& function<T>::operator=(const function<T>& other) {
     name_ = other.name_;
     arity_ = other.arity_;
     children_ = other.children_;
@@ -210,7 +212,11 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules) {
 
 template<typename T>
 term_ptr<T> rewrite(term_ptr<T> t, term<T>& rhs, std::vector<int> path, const Sub<T>& sigma) {
-
+    term_ptr<T> current = t;
+    for(int i : path) {
+        current = current->children()[i-1];
+    }
+    *current = rhs;
     return t;
 }
 
