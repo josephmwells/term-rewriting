@@ -61,7 +61,11 @@ public:
 
     virtual std::vector<term_ptr<T>> children() { return std::vector<term_ptr<T>>(); }
 
+    virtual void set_child(const term<T>& rhs, int index) {}
+
     virtual term_ptr<T> substitute(const Sub<T> &sigma) const = 0;
+
+    virtual term_ptr<T> make_ptr() const = 0;
 
     virtual void print() const = 0;
 
@@ -85,6 +89,8 @@ public:
 
     term_ptr<T> substitute(const Sub<T> &sigma) const override;
 
+    term_ptr<T> make_ptr() const override;
+
     void print() const override;
 
 private:
@@ -98,15 +104,19 @@ variable<T>& variable<T>::operator=(const variable<T> &other) {
 }
 
 template<typename T>
-void variable<T>::print() const {
-    std::cout << name_;
+term_ptr<T> variable<T>::substitute(const Sub<T> &sigma) const {
+    term<T>& t = sigma(name_);
+    return t.make_ptr();
 }
 
 template<typename T>
-term_ptr<T> variable<T>::substitute(const Sub<T> &sigma) const {
-    //term<T> t_copy = sigma(name_);
-    //term_ptr<T> t = std::make_shared<term<T>>(t_copy);
-    return term_ptr<T>();
+term_ptr<T> variable<T>::make_ptr() const {
+    return std::make_shared<variable<T>>(*this);
+}
+
+template<typename T>
+void variable<T>::print() const {
+    std::cout << name_;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -126,6 +136,8 @@ public:
 
     term_ptr<T> substitute(const Sub<T> &sigma) const override;
 
+    term_ptr<T> make_ptr() const override;
+
     void print() const override;
 
 private:
@@ -139,6 +151,16 @@ literal<T>& literal<T>::operator=(const literal<T> &other) {
 }
 
 template<typename T>
+term_ptr<T> literal<T>::substitute(const Sub<T> &sigma) const {
+    return make_ptr();
+}
+
+template<typename T>
+term_ptr<T> literal<T>::make_ptr() const {
+    return std::make_shared<literal<T>>(*this);
+}
+
+template<typename T>
 void literal<T>::print() const {
     std::cout << value_;
 }
@@ -149,11 +171,6 @@ void literal<bool>::print() const {
     if (!value_) std::cout << "false";
 }
 
-template<typename T>
-term_ptr<T> literal<T>::substitute(const Sub<T> &sigma) const {
-    term_ptr<T> t = std::make_shared<literal<T>>(*this);
-    return t;
-}
 
 /////////////////////////////////////////////////////////////////
 // FUNCTION
@@ -174,7 +191,11 @@ public:
 
     std::vector<term_ptr<T>> children() override { return children_; };
 
+    void set_child(const term<T>& rhs, int index) override;
+
     term_ptr<T> substitute(const Sub<T> &sigma) const override;
+
+    term_ptr<T> make_ptr() const override;
 
     void print() const override;
 
@@ -193,6 +214,25 @@ function<T>& function<T>::operator=(const function<T>& other) {
 }
 
 template<typename T>
+void function<T>::set_child(const term<T>& rhs, int index) {
+    children_[index] = rhs.make_ptr();
+}
+
+template<typename T>
+term_ptr<T> function<T>::substitute(const Sub<T>& sigma) const {
+    function<T> t_copy = *this;
+    for(term_ptr<T>& t : t_copy.children_) {
+        t = t->substitute(sigma);
+    }
+    return t_copy.make_ptr();
+}
+
+template<typename T>
+term_ptr<T> function<T>::make_ptr() const {
+    return std::make_shared<function<T>>(*this);
+}
+
+template<typename T>
 void function<T>::print() const {
     std::cout << name_;
     std::cout << "(";
@@ -203,15 +243,7 @@ void function<T>::print() const {
     std::cout << ")";
 }
 
-template<typename T>
-term_ptr<T> function<T>::substitute(const Sub<T>& sigma) const {
-    function<T> t_copy = *this;
-    for(term_ptr<T>& t : t_copy.children_) {
-        t = t->substitute(sigma);
-    }
-    term_ptr<T> t_ptr = std::make_shared<function<T>>(t_copy);
-    return t_ptr;
-}
+
 
 /////////////////////////////////////////////////////////////////
 //
@@ -241,8 +273,18 @@ term_ptr<T> reduce(term_ptr<T> t, const std::vector<rule<T>> &rules) {
 
 template<typename T>
 term_ptr<T> rewrite(term_ptr<T> t, const term<T>& rhs, std::vector<int> path, const Sub<T>& sigma) {
-    term_ptr<T> t_new = rhs.substitute(sigma);
-    return t_new;
+    if(path.empty()) {
+        term_ptr<T> t_new = rhs.substitute(sigma);
+        return t_new;
+    }
+
+    term_ptr<T> current = t;
+    for(int i : path) {
+        if(i != path.back()) current = current->children()[i-1];
+    }
+    t->set_child(rhs, path.back() - 1);
+    t = t->substitute(sigma);
+    return t;
 }
 
 /////////////////////////////////////////////////////////////////
