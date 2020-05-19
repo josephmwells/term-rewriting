@@ -61,7 +61,7 @@ public:
 
     virtual std::vector<term_ptr<T>> children() { return std::vector<term_ptr<T>>(); }
 
-    virtual void set_child(const term<T>& rhs, int index) {}
+    virtual void set_child(term_ptr<T> sub, int index) {}
 
     virtual term_ptr<T> substitute(const Sub<T> &sigma) const = 0;
 
@@ -191,7 +191,7 @@ public:
 
     std::vector<term_ptr<T>> children() override { return children_; };
 
-    void set_child(const term<T>& rhs, int index) override;
+    void set_child(term_ptr<T> sub, int index) override;
 
     term_ptr<T> substitute(const Sub<T> &sigma) const override;
 
@@ -214,8 +214,8 @@ function<T>& function<T>::operator=(const function<T>& other) {
 }
 
 template<typename T>
-void function<T>::set_child(const term<T>& rhs, int index) {
-    children_[index] = rhs.make_ptr();
+void function<T>::set_child(term_ptr<T> sub, int index) {
+    children_[index] = sub;
 }
 
 template<typename T>
@@ -282,8 +282,7 @@ term_ptr<T> rewrite(term_ptr<T> t, const term<T>& rhs, std::vector<int> path, co
     for(int i : path) {
         if(i != path.back()) current = current->children()[i-1];
     }
-    t->set_child(rhs, path.back() - 1);
-    t = t->substitute(sigma);
+    current->set_child(rhs.substitute(sigma), path.back() - 1);
     return t;
 }
 
