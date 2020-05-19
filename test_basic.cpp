@@ -90,7 +90,6 @@ rule<bool> contra(to(var("a"), lit(false)), tnot(var("a")));
 
 int main()
 {
-    cout << "Testing" << endl;
     // (!(x \/ x) /\ !true) -> false
     term_ptr<bool> example = to(tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))), lit(false));
 
@@ -109,7 +108,6 @@ int main()
     // output: not(true)
     // output: true
     // output: false
-    cout << "iterating . . . " << endl;
     for(term<bool>& t : *example)
     {
         cout << "output: ";
@@ -123,5 +121,5 @@ int main()
     Sub<bool> match;
     match.extend("a", tand(tnot(tor(var("x"), var("x"))), tnot(lit(true))));
     example = rewrite(example, *contra.second, vector<int>(), match);
-    cout << *example << endl;
+    cout << "output: " << *example << endl;
 }
